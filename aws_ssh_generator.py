@@ -67,7 +67,7 @@ def err(msg):
 
 def get_target(account, items, targets):
     '''
-    Choose the correct target from the
+    Choose the correct target from the account
     '''
 
     for i, target in enumerate(targets):
