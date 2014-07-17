@@ -58,12 +58,14 @@ __aws.json__
 }
 ```
 
-each entry under the `credentials` section represents an AWS account 
-for example `company_a` uses `key` as the amazon user key and `secret` as amazon user secret
-`targets` is a list of settings to match a specific hosts of that account
-if the check will result as true the settings will be used in ssh_config
+each entry under the `credentials` section represents an AWS account.
+
+for example `company_a` uses `key` as the amazon user key and `secret` as amazon user secret.
+`targets` is a list of settings to match a specific hosts of that account, 
+if the check will result as true the settings will be used in ssh_config.
 
 all the ssh configuration are supported in `ssh_opts` dict
+
 `alias` will be used as the `Host` value, for easy bash-completion
 
 all the settings under `defaults` will be appended to each host if not specified in the target
