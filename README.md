@@ -69,15 +69,16 @@ all the ssh configuration are supported in `ssh_opts` dict
 all the settings under `defaults` will be appended to each host if not specified in the target
 or no target is found
 
-__checks__
-no checks will be made
+__Checks Types__
+
+* none: no checks will be made
 ```json
 {
     "type": "none"
 }
 ```
 
-if the instance has the tag `name: value` in it's ec2 meta data
+* tag: if the instance has the tag `name: value` in it's ec2 meta data
 ```json
 {
     "type": "tag",
