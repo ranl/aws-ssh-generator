@@ -69,6 +69,18 @@ all the ssh configuration are supported in `ssh_opts` dict
 all the settings under `defaults` will be appended to each host if not specified in the target
 or no target is found
 
+__Alias Format__
+```json
+{
+    "account": "account name",
+    "tags": {all ec2 tags},
+    "id": "instance id",
+    "public_dns": "public ip",
+    "private_dns": "private ip",
+    "keypair": "key pair name",
+}
+```
+
 __Checks Types__
 
 * none: no checks will be made
