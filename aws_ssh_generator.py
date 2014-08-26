@@ -20,6 +20,10 @@ public_entry = '''Host {alias}
     HostName {public_ip}'''
 
 
+######################
+### Terminal Funcs ###
+######################
+
 def get_args():
     '''
     parse command line arguments
@@ -32,6 +36,63 @@ def get_args():
 
     return sys.argv[1]
 
+
+def err(msg):
+    '''
+    Print error message to stderr
+    '''
+
+    print >> sys.stderr, msg
+
+
+def print_host(data):
+    '''
+    Print the host entries in ssh_config format
+    '''
+
+    private_ip = data.pop('private_ip')
+    public_ip = data.pop('public_ip')
+    alias = data.pop('alias')
+    for entry in [public_entry, private_entry]:
+        try:
+            print entry.format(
+                alias=alias, public_ip=public_ip, private_ip=private_ip
+            )
+            for key, value in data.iteritems():
+                print '    {0} {1}'.format(key, value)
+            print ''
+        except KeyError as e:
+            err('bad host data')
+            err(str(e))
+
+
+##############
+### Checks ###
+##############
+
+def check_instance__none(account, items, target):
+    '''
+    Always True
+    '''
+
+    return True
+
+
+def check_instance__tag(account, items, target):
+    '''
+    Check if the {k: v} is in the instance tags
+    '''
+
+    # Type tag
+    if target['type'] == 'tag' and target['name'] in items['tags']:
+        if items['tags'][target['name']] == target['value']:
+            return True
+    return False
+
+
+############
+### Main ###
+############
 
 def read_config_file(filename):
     '''
@@ -57,14 +118,6 @@ def get_instances(awskey, awssec):
     return ret
 
 
-def err(msg):
-    '''
-    Print error message to stderr
-    '''
-
-    print >> sys.stderr, msg
-
-
 def get_target(account, items, targets):
     '''
     Choose the correct target from the account
@@ -72,18 +125,13 @@ def get_target(account, items, targets):
 
     for i, target in enumerate(targets):
         try:
-            # Type no_check
-            if target['type'] == 'none':
-                pass
-            # Type tag
-            elif target['type'] == 'tag' and target['name'] in items['tags']:
-                if items['tags'][target['name']] == target['value']:
-                    pass
-                else:
-                    continue
-            else:
+            try:
+                f = globals()['check_instance__{0}'.format(target['type'])]
+            except AttributeError:
+                err('"{0}" is not a valid check in account "{1}"'.format(account, target['type']))
                 continue
-            return target
+            if f(account, items, target):
+                return target
         except KeyError as e:
             err('missing "{2}" field in entry #{0} under account {1}'.format(i, account, e.message))
             continue
@@ -137,27 +185,6 @@ def compile_instance_data(instance, account, meta, defaults):
                 ret.update({key: value})
 
     return ret
-
-
-def print_host(data):
-    '''
-    Print the host entries in ssh_config format
-    '''
-
-    private_ip = data.pop('private_ip')
-    public_ip = data.pop('public_ip')
-    alias = data.pop('alias')
-    for entry in [public_entry, private_entry]:
-        try:
-            print entry.format(
-                alias=alias, public_ip=public_ip, private_ip=private_ip
-            )
-            for key, value in data.iteritems():
-                print '    {0} {1}'.format(key, value)
-            print ''
-        except KeyError as e:
-            err('bad host data')
-            err(str(e))
 
 
 def main():
