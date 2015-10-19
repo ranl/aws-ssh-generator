@@ -11,6 +11,7 @@ import json
 
 # Third party libs
 import boto.ec2
+import boto
 
 # Globals
 log = logging.getLogger(__name__)
@@ -111,8 +112,14 @@ def get_instances(awskey, awssec):
 
     ret = []
     for region in boto.ec2.regions():
-        conn = boto.ec2.connect_to_region(region.name, aws_access_key_id=awskey, aws_secret_access_key=awssec)
-        ret += [i for r in conn.get_all_instances() for i in r.instances]
+        all_instances = []
+        try:
+            conn = boto.ec2.connect_to_region(region.name, aws_access_key_id=awskey, aws_secret_access_key=awssec)
+            all_instances = conn.get_all_instances()
+        except boto.exception.EC2ResponseError:
+            err("Got EC2ResponseError")
+
+        ret += [i for r in all_instances for i in r.instances]
         conn.close()
 
     return ret
@@ -208,10 +215,10 @@ def main():
             continue
 
         for instance in instances:
-            if instance.__dict__['state'] != 'running':
+            if instance.state != 'running':
                 err('instance {0} of account "{2}" is in "{1}" state'.format(
-                    instance.__dict__['id'],
-                    instance.__dict__['state'],
+                    instance.id,
+                    instance.state,
                     account
                 ))
                 continue
